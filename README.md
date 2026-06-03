@@ -1,0 +1,1 @@
+python3 Ani.py ./input -o ./output --dispose background

@@ -120,6 +120,7 @@ def _convert_with_ani_parser(
     dst: Path,
     delay_override: int | None,
     loop: int,
+    dispose: str,
 ) -> None:
     frames, order, rates, default_rate = _parse_ani(data)
 
@@ -165,7 +166,16 @@ def _convert_with_ani_parser(
 
         cmd = [magick, "-loop", str(loop)]
         for frame_path, delay in zip(png_frames, delays, strict=False):
-            cmd.extend(["-delay", str(delay), str(frame_path)])
+            cmd.extend(
+                [
+                    "-delay",
+                    str(delay),
+                    str(frame_path),
+                    "-set",
+                    "dispose",
+                    dispose,
+                ]
+            )
         cmd.append(str(dst))
         build = subprocess.run(cmd, text=True, capture_output=True)
         if build.returncode != 0:
@@ -192,6 +202,12 @@ def main() -> int:
         type=int,
         default=0,
         help="GIF loop count (0 = infinite)",
+    )
+    parser.add_argument(
+        "--dispose",
+        choices=["none", "background", "previous"],
+        default="background",
+        help="GIF disposal method (default: background)",
     )
     args = parser.parse_args()
 
@@ -235,6 +251,7 @@ def main() -> int:
                     dst,
                     delay_override=args.delay,
                     loop=args.loop,
+                    dispose=args.dispose,
                 )
                 print(f"OK (ani): {src.name} -> {dst.name}")
                 continue
