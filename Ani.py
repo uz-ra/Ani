@@ -121,11 +121,20 @@ def _convert_with_ani_parser(
     delay_override: int | None,
     loop: int,
     dispose: str,
+    max_frames: int | None = None,
 ) -> None:
     frames, order, rates, default_rate = _parse_ani(data)
 
     if not order:
         order = list(range(len(frames)))
+
+    # Skip frames if max_frames is specified
+    if max_frames is not None and len(order) > max_frames:
+        step = len(order) / max_frames
+        new_order = [order[int(i * step)] for i in range(max_frames)]
+        order = new_order
+        if rates:
+            rates = [rates[int(i * step)] for i in range(max_frames)]
 
     if delay_override is not None:
         delays = [delay_override] * len(order)
@@ -209,6 +218,12 @@ def main() -> int:
         default="background",
         help="GIF disposal method (default: background)",
     )
+    parser.add_argument(
+        "--max-frames",
+        type=int,
+        default=None,
+        help="Maximum number of frames (will skip frames to meet this limit)",
+    )
     args = parser.parse_args()
 
     magick = _find_magick()
@@ -252,6 +267,7 @@ def main() -> int:
                     delay_override=args.delay,
                     loop=args.loop,
                     dispose=args.dispose,
+                    max_frames=args.max_frames,
                 )
                 print(f"OK (ani): {src.name} -> {dst.name}")
                 continue

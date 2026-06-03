@@ -1,1 +1,1 @@
-python3 Ani.py ./input -o ./output --dispose background
+python3 Ani.py ./input -o ./output --dispose background --max-frames 24
